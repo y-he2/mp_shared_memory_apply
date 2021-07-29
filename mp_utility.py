@@ -17,7 +17,7 @@ def init_worker(
 		func_module = __import__( func_module_name )
 	except ModuleNotFoundError:
 		print( "The function module file must be in the same folder as the calling script!" )
-	print( dir( func_module ) )
+
 	assert hasattr( func_module, 'proc' ), "The function module must include a function in form of proc( data_tensor, idx )!"
 
 	global data_shape
