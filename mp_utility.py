@@ -10,7 +10,7 @@ def init_worker(
 	data_type_ref, 
 	kwargs
 ): 
-	print( "Init worker processing:\n\t", mp.current_process() )
+	print( "Init worker process:\n\t", mp.current_process() )
 
 	global func_module
 	try:
@@ -33,7 +33,7 @@ def init_worker(
 	kwargs_proc = kwargs
 	
 def worker_proc( idx ):
-	print( "Processing on worker:\n\t", mp.current_process() )
+	# print( "Processing on worker:\n\t", mp.current_process() )
 
 	# suppose on each worker try to access the global ref to create a buffered ndarray
 	global data_shape
@@ -44,7 +44,13 @@ def worker_proc( idx ):
 	
 	return( worker_res )
 
-def parallel_tensor_apply( func_module_name, data_tensor, index_set, max_processes = 99, **kwargs ):
+def parallel_tensor_apply( 
+	func_module_name, 
+	data_tensor, 
+	index_set, 
+	max_processes = 99, 
+	**kwargs 
+):
 	if mp.current_process().name == 'MainProcess':
 		shared_memory_block_master = shared_memory.SharedMemory( 
 			create = True, 
