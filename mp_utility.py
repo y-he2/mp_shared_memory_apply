@@ -1,6 +1,12 @@
+try:
+	__IPYTHON__
+except NameError:
+	import multiprocessing as mp
+	import multiprocessing.shared_memory
+else: 
+	import multiprocess as mp
+	import multiprocess.shared_memory
 import numpy as np
-import multiprocess as mp
-from multiprocess import shared_memory
 import os
 
 def init_worker( 
@@ -51,33 +57,32 @@ def parallel_tensor_apply(
 	max_processes = 99, 
 	**kwargs 
 ):
-	if mp.current_process().name == 'MainProcess':
-		shared_memory_block_master = shared_memory.SharedMemory( 
-			create = True, 
-			size = data_tensor.nbytes 
-		)
-		shared_data_master = np.ndarray( 
-			shape = data_tensor.shape, 
-			dtype = data_tensor.dtype, 
-			buffer = shared_memory_block_master.buf 
-		)
-		## Copy the data tensor to the shared memory block once, performed only on the master process. 
-		shared_data_master[:] = data_tensor[:]
+	shared_memory_block_master = mp.shared_memory.SharedMemory( 
+		create = True, 
+		size = data_tensor.nbytes 
+	)
+	shared_data_master = np.ndarray( 
+		shape = data_tensor.shape, 
+		dtype = data_tensor.dtype, 
+		buffer = shared_memory_block_master.buf 
+	)
+	## Copy the data tensor to the shared memory block once, performed only on the master process. 
+	shared_data_master[:] = data_tensor[:]
 
-		with mp.Pool( 
-			processes = min( max_processes, os.cpu_count() ), 
-			initializer = init_worker, 
-			initargs = (
-				func_module_name, 
-				shared_memory_block_master, 
-				data_tensor.shape, 
-				data_tensor.dtype, 
-				kwargs
-			)
-		) as pool: 
-			res = pool.map( 
-				worker_proc, 
-				index_set
-			)
-		return( res )
+	with mp.Pool( 
+		processes = min( max_processes, os.cpu_count() ), 
+		initializer = init_worker, 
+		initargs = (
+			func_module_name, 
+			shared_memory_block_master, 
+			data_tensor.shape, 
+			data_tensor.dtype, 
+			kwargs
+		)
+	) as pool: 
+		res = pool.map( 
+			worker_proc, 
+			index_set
+		)
+	return( res )
 	
