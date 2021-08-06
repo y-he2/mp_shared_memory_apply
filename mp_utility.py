@@ -16,7 +16,7 @@ def init_worker(
 	data_type_ref, 
 	kwargs
 ): 
-	print( "Init worker process:\n\t", mp.current_process() )
+	print( "Init worker process: ", mp.current_process() )
 
 	global func_module
 	try:
