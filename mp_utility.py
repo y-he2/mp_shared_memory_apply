@@ -16,7 +16,7 @@ def init_worker(
 	data_type_ref, 
 	kwargs
 ): 
-	print( "Init worker process: ", mp.current_process() )
+	print( "\t\tInit worker process: ", mp.current_process() )
 
 	global func_module
 	try:
@@ -69,7 +69,8 @@ def parallel_tensor_apply(
 		)
 		## Copy the data tensor to the shared memory block once, performed only on the master process. 
 		shared_data_master[:] = data_tensor[:]
-
+		
+		print( "Pool initiated..." )
 		with mp.Pool( 
 			processes = min( max_processes, os.cpu_count() ), 
 			initializer = init_worker, 
