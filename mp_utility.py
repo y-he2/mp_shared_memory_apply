@@ -57,32 +57,33 @@ def parallel_tensor_apply(
 	max_processes = 99, 
 	**kwargs 
 ):
-	shared_memory_block_master = mp.shared_memory.SharedMemory( 
-		create = True, 
-		size = data_tensor.nbytes 
-	)
-	shared_data_master = np.ndarray( 
-		shape = data_tensor.shape, 
-		dtype = data_tensor.dtype, 
-		buffer = shared_memory_block_master.buf 
-	)
-	## Copy the data tensor to the shared memory block once, performed only on the master process. 
-	shared_data_master[:] = data_tensor[:]
+	if( mp.current_process().name == "MainProcess" ):
+		shared_memory_block_master = mp.shared_memory.SharedMemory( 
+			create = True, 
+			size = data_tensor.nbytes 
+		)
+		shared_data_master = np.ndarray( 
+			shape = data_tensor.shape, 
+			dtype = data_tensor.dtype, 
+			buffer = shared_memory_block_master.buf 
+		)
+		## Copy the data tensor to the shared memory block once, performed only on the master process. 
+		shared_data_master[:] = data_tensor[:]
 
-	with mp.Pool( 
-		processes = min( max_processes, os.cpu_count() ), 
-		initializer = init_worker, 
-		initargs = (
-			func_module_name, 
-			shared_memory_block_master, 
-			data_tensor.shape, 
-			data_tensor.dtype, 
-			kwargs
-		)
-	) as pool: 
-		res = pool.map( 
-			worker_proc, 
-			index_set
-		)
-	return( res )
+		with mp.Pool( 
+			processes = min( max_processes, os.cpu_count() ), 
+			initializer = init_worker, 
+			initargs = (
+				func_module_name, 
+				shared_memory_block_master, 
+				data_tensor.shape, 
+				data_tensor.dtype, 
+				kwargs
+			)
+		) as pool: 
+			res = pool.map( 
+				worker_proc, 
+				index_set
+			)
+		return( res )
 	
