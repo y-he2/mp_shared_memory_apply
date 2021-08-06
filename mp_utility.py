@@ -85,5 +85,6 @@ def parallel_tensor_apply(
 				worker_proc, 
 				index_set
 			)
+		print( "Pool closed." )
 		return( res )
 	
